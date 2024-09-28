@@ -54,7 +54,7 @@ void setup() {
   delay(4000);
 
   tft.setTextSize(2);
-  testdrawtext((char *)"\n\nixuhndred",ST77XX_BLUE);
+  testdrawtext((char *)"\n\nixhundred",ST77XX_BLUE);
 
   Serial.println("#Ready");
 }
@@ -63,6 +63,7 @@ void loop() {
   if(digitalRead(BT_L)==LOW) {
     delay(20);
     if(digitalRead(BT_L)==LOW) {
+      tft.invertDisplay(false);
       Serial.println("#Left pressed");
       while(digitalRead(BT_L)==LOW);
       Serial.println("#Left released");
@@ -71,10 +72,9 @@ void loop() {
   if(digitalRead(BT_R)==LOW) {
     delay(20);
     if(digitalRead(BT_R)==LOW) {
-      tft.invertDisplay(false);
+      tft.invertDisplay(true);
       Serial.println("#Right pressed");
       while(digitalRead(BT_R)==LOW);
-      tft.invertDisplay(true);
       Serial.println("#Right released");
     }
   }
