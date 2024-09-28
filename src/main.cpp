@@ -54,7 +54,7 @@ void setup() {
   delay(4000);
 
   tft.setTextSize(2);
-  testdrawtext("ixuhndred",ST77XX_BLUE);
+  testdrawtext((char *)"\n\nixuhndred",ST77XX_BLUE);
 
   Serial.println("#Ready");
 }
