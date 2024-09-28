@@ -2,6 +2,11 @@
 #include <EEPROM.h>
 #include <SPI.h>
 
+#include <LiquidCrystal_I2C.h>
+#define I2C_SDA 25
+#define I2C_SCL 26
+LiquidCrystal_I2C lcd(0x27, 20, 4); // set the LCD address to 0x27 for a 16 chars and 2 line display
+
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
 #define TFT_CS         5
@@ -31,7 +36,17 @@ void setup() {
   pinMode(BT_L,INPUT_PULLUP);
   pinMode(BT_R,INPUT_PULLUP);
   digitalWrite(TFT_BL,1);
-  
+
+	lcd.init(I2C_SDA, I2C_SCL); // initialize the lcd to use user defined I2C pins
+	lcd.backlight();
+	lcd.setCursor(3,0);
+	lcd.print("Hello, world!");
+	lcd.setCursor(2,1);
+	lcd.print("Time is now");
+	lcd.setCursor(0,2);
+	lcd.print("900 !!");
+	lcd.setCursor(0,3);
+	lcd.print("ixhundred!!");
 
   Serial.println(F("#Initialized Screen..."));
   tft.init(135, 240);           // Init ST7789 240x135, 1.14 inch
