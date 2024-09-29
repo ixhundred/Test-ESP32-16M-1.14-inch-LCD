@@ -164,9 +164,54 @@ void ixhundred_Move::move_next(LiquidCrystal_I2C &lcd, ixhundred_Move* titles)
     }
 }
 
-void ixhundred_Move::move_nextxy(Adafruit_ST7789 &tft)
+void ixhundred_Move::move_next(Adafruit_ST7789 &lcd)
 {
-    
+    if ((int)_cx != (int)_tx || (int)_cy != (int)_ty) {
+        float diffx = abs(_tx-_cx);
+        float diffy = abs(_ty-_cy);
+        if (diffx >= diffy) {
+            //move x-axis
+            if ((int)_cx != (int)_tx) {
+                lcd.setTextColor(ST77XX_BLACK);
+                show(lcd);
+                lcd.setTextColor(ST77XX_BLUE);
+                //for(int i = 0; i < 12; ++i) {
+                //    if (titles[i]._tx != _tx && titles[i]._ty != _ty)
+                //        if (titles[i]._cx == _cx && titles[i]._cy == _cy) {
+                //            lcd.setCursor((int)titles[i]._cx,(int)titles[i]._cy);
+                //            lcd.print((char)titles[i]._char);
+                //            break;
+                //        }
+                //}
+                _difff = abs(_tx-_cx);
+                if((int)_tx > (int)_cx) {                   
+                    _cx += _difff>=_speedx?_speedx:_difff;
+                    show(lcd);
+                }
+                else {
+                    _cx -= _difff>=_speedx?_speedx:_difff;
+                    show(lcd);
+                }
+            }
+        }
+        else {
+            //mov y-axis
+            if ((int)_cy != (int)_ty) {
+                lcd.setTextColor(ST77XX_BLACK);
+                show(lcd);
+                lcd.setTextColor(ST77XX_BLUE);
+                _difff = abs(_ty-_cy);
+                if((int)_ty > (int)_cy) {
+                    _cy += _difff>=_speedy?_speedy:_difff;
+                    show(lcd);
+                }
+                else {
+                    _cy -= _difff>=_speedy?_speedy:_difff;
+                    show(lcd);
+                }
+            }
+        }
+    }   
 }
 
 void ixhundred_Move::show(LiquidCrystal_I2C &lcd)
@@ -176,9 +221,9 @@ void ixhundred_Move::show(LiquidCrystal_I2C &lcd)
     //Serial.printf("#show %c at %d,%d\r\n",_char,(int)_cx,(int)_cy);
 }
 
-void ixhundred_Move::showxy(Adafruit_ST7789 &tft)
+void ixhundred_Move::show(Adafruit_ST7789 &lcd)
 {
-    tft.setCursor((int)_cx,(int)_cy);
-    tft.print((char)_char);
+    lcd.setCursor((int)_cx,(int)_cy);
+    lcd.print((char)_char);
     //Serial.printf("#show %c at %d,%d\r\n",_char,(int)_cx,(int)_cy);
 }

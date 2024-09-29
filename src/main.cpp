@@ -7,6 +7,7 @@
 #define TEST_SPEEDY  4
 #define RX2_PIN 27 
 #define TX2_PIN 26
+#define T2_SPACE 11
 
 #include <LiquidCrystal_I2C.h>
 #define I2C_SDA 21
@@ -98,15 +99,15 @@ void setup() {
   titles[9].init('H',13,1);
   titles[10].init('A',14,1);
   titles[11].init('M',15,1);
-  titles2[0].init('i',16,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[1].init('x',16*2,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[2].init('h',16*3,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[3].init('u',16*4,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[4].init('n',16*5,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[5].init('d',16*6,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[6].init('r',16*7,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[7].init('e',16*8,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[8].init('d',16*9,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[0].init('i',T2_SPACE,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[1].init('x',T2_SPACE*2,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[2].init('h',T2_SPACE*3,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[3].init('u',T2_SPACE*4,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[4].init('n',T2_SPACE*5,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[5].init('d',T2_SPACE*6,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[6].init('r',T2_SPACE*7,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[7].init('e',T2_SPACE*8,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[8].init('d',T2_SPACE*9,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
 
   Serial.println("#Ready");
 }
@@ -192,13 +193,13 @@ void loop() {
       Serial.println("#titles2 move finished");
       //tft.fillScreen(ST77XX_BLACK);
       for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
-        titles[i].showxy(tft);
+        titles2[i].show(tft);
       }
       delay(2000);
       tft.fillRect(0,64,tft.width(),16,ST77XX_BLACK);
       for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
         titles2[i].randompos();
-        titles2[i].showxy(tft);
+        titles2[i].show(tft);
         delay(250);
       }
       delay(2000);
@@ -207,7 +208,7 @@ void loop() {
       //try to move next;
       Serial.println("#titles2 move next");
       for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
-        titles2[i].move_nextxy(tft);
+        titles2[i].move_next(tft);
       }
     }
 

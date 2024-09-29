@@ -39,9 +39,9 @@ class ixhundred_Move
         void randompos();
         bool move_finished();
         void move_next(LiquidCrystal_I2C &lcd, ixhundred_Move* titles);
-        void move_nextxy(Adafruit_ST7789 &tft);
+        void move_next(Adafruit_ST7789 &lcd);
         void show(LiquidCrystal_I2C &lcd);
-        void showxy(Adafruit_ST7789 &tft);
+        void show(Adafruit_ST7789 &lcd);
     private:
         float _speedx = 1;
         float _speedy = 1;
