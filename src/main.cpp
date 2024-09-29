@@ -3,9 +3,15 @@
 #include <SPI.h>
 
 #include <LiquidCrystal_I2C.h>
-#define I2C_SDA 25
-#define I2C_SCL 26
+#define I2C_SDA 21
+#define I2C_SCL 22
 LiquidCrystal_I2C lcd(0x27, 20, 4); // set the LCD address to 0x27 for a 16 chars and 2 line display
+
+#include "ixhundred_Move.h"
+ixhundred_Move titles[13];
+ixhundred_Move titles2[9];
+uint32_t tmove = 0;
+uint8_t mark[4][20];
 
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
@@ -57,8 +63,8 @@ void setup() {
   tft.setRotation(2);
 
   // line draw test
-  testlines(ST77XX_YELLOW);
-  delay(500);
+  //testlines(ST77XX_YELLOW);
+  //delay(500);
 
   // optimized lines
   testfastlines(ST77XX_RED, ST77XX_BLUE);
@@ -66,10 +72,33 @@ void setup() {
 
   // optimized lines
   tftPrintTest();
-  delay(4000);
+  delay(500);
 
   tft.setTextSize(2);
   testdrawtext((char *)"\n\nixhundred",ST77XX_BLUE);
+
+  titles[0].init('V',3,1);
+  titles[1].init('A',4,1);
+  titles[2].init('N',5,1);
+  titles[3].init('L',6,1);
+  titles[4].init('O',7,1);
+  titles[5].init('P',8,1);
+  //titles[6].init(' ',9,1);
+  titles[6].init('I',10,1);
+  titles[7].init('N',11,1);
+  titles[8].init('C',12,1);
+  titles[9].init('H',13,1);
+  titles[10].init('A',14,1);
+  titles[11].init('M',15,1);
+  titles2[0].init('i',16,64);
+  titles2[1].init('x',16*2,64);
+  titles2[2].init('h',16*3,64);
+  titles2[3].init('u',16*4,64);
+  titles2[4].init('n',16*5,64);
+  titles2[5].init('d',16*6,64);
+  titles2[6].init('r',16*7,64);
+  titles2[7].init('e',16*8,64);
+  titles2[8].init('d',16*9,64);
 
   Serial.println("#Ready");
 }
@@ -92,6 +121,75 @@ void loop() {
       while(digitalRead(BT_R)==LOW);
       Serial.println("#Right released");
     }
+  }
+
+  if ((uint32_t)(millis()-tmove) >= 500) {
+    tmove = millis();
+    uint8_t fin = 1;
+    for(int i = 0; i < sizeof titles/sizeof titles[0]; ++i) {
+      if (!titles[i].move_finished()) {
+        fin = 0;
+        break;
+      }
+    }
+    if (fin == 1) {
+      //finished reset
+      Serial.println("#titles move finished");
+      lcd.clear();
+      for(int i = 0; i < sizeof titles/sizeof titles[0]; ++i) {
+        titles[i].show(lcd);
+      }
+      delay(2000);
+      lcd.clear();
+      for(int i = 0; i < 4; ++i)
+        for(int j = 0; j < 20; ++j)
+          mark[i][j] = 0;
+      for(int i = 0; i < sizeof titles/sizeof titles[0]; ++i) {
+        do {
+          titles[i].randompos(lcd);
+        } while(mark[(int)titles[i]._cy][(int)titles[i]._cx] == 1);
+        mark[(int)titles[i]._cy][(int)titles[i]._cx] = 1;
+        titles[i].show(lcd);
+        delay(250);
+      }
+      delay(2000);
+    }
+    else {
+      //try to move next;
+      Serial.println("#titles move next");
+      //lcd.clear();
+      for(int i = 0; i < sizeof titles/sizeof titles[0]; ++i) {
+        titles[i].move_next(lcd, titles);
+        //for(int j = 0; j < sizeof titles/sizeof titles[0]; ++j) {
+        //  titles[j].show(lcd);
+        //}
+        //titles[i].show(lcd);
+      }
+      for(int j = 0; j < sizeof titles/sizeof titles[0]; ++j) {
+        titles[j].show(lcd);
+      }
+    }
+
+/*
+    uint8_t fin2 = 1;
+    for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
+      if (!titles[i].move_finished()) {
+        fin2 = 0;
+        break;
+      }
+    }
+    if (fin2 == 1) {
+      //finished reset
+      Serial.println("#titles2 move finished");
+    }
+    else {
+      //try to move next;
+      Serial.println("#titles2 move next");
+      for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
+        titles2[i].move_next();
+      }
+    }
+*/
   }
 }
 
