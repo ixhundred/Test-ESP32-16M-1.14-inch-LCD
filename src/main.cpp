@@ -101,13 +101,13 @@ void setup() {
   titles[3].init('L',6,1);
   titles[4].init('O',7,1);
   titles[5].init('P',8,1);
-  //titles[6].init(' ',9,1);
-  titles[6].init('I',10,1);
-  titles[7].init('N',11,1);
-  titles[8].init('C',12,1);
-  titles[9].init('H',13,1);
-  titles[10].init('A',14,1);
-  titles[11].init('M',15,1);
+  titles[6].init(' ',9,1);
+  titles[7].init('I',10,1);
+  titles[8].init('N',11,1);
+  titles[9].init('C',12,1);
+  titles[10].init('H',13,1);
+  titles[11].init('A',14,1);
+  titles[12].init('M',15,1);
 
   xTaskCreatePinnedToCore(
                       Task1code,   // Task function. 
@@ -160,7 +160,12 @@ void loop() {
       lcd.clear();
       for(int i = 0; i < sizeof titles/sizeof titles[0]; ++i) {
         titles[i].show(lcd);
+        if(titles[i]._cy+1 < titles[i]._maxy) {
+          lcd.setCursor(titles[i]._cx,titles[i]._cy+1);
+          lcd.print('=');
+        }
       }
+      
       delay(3000);
       lcd.clear();
       for(int i = 0; i < 4; ++i)

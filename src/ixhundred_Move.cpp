@@ -112,8 +112,10 @@ bool ixhundred_Move::move_finished()
 
 void ixhundred_Move::randompos()
 {
-    _cx = random(0,_maxx);
-    _cy = random(0,_maxy);
+    if (_char != ' ') {
+        _cx = random(0,_maxx);
+        _cy = random(0,_maxy);
+    }
 }
 
 void ixhundred_Move::move_next(LiquidCrystal_I2C &lcd, ixhundred_Move* titles)
