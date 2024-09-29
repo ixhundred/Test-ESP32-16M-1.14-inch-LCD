@@ -126,14 +126,6 @@ void ixhundred_Move::move_next(LiquidCrystal_I2C &lcd, ixhundred_Move* titles)
             if ((int)_cx != (int)_tx) {
                 lcd.setCursor(_cx,_cy);
                 lcd.print(' ');
-                //for(int i = 0; i < 12; ++i) {
-                //    if (titles[i]._tx != _tx && titles[i]._ty != _ty)
-                //        if (titles[i]._cx == _cx && titles[i]._cy == _cy) {
-                //            lcd.setCursor((int)titles[i]._cx,(int)titles[i]._cy);
-                //            lcd.print((char)titles[i]._char);
-                //            break;
-                //        }
-                //}
                 _difff = abs(_tx-_cx);
                 if((int)_tx > (int)_cx) {                   
                     _cx += _difff>=_speedx?_speedx:_difff;
@@ -162,6 +154,9 @@ void ixhundred_Move::move_next(LiquidCrystal_I2C &lcd, ixhundred_Move* titles)
             }
         }
     }
+    else {
+        show(lcd);
+    }
 }
 
 void ixhundred_Move::move_next(Adafruit_ST7789 &lcd)
@@ -175,14 +170,6 @@ void ixhundred_Move::move_next(Adafruit_ST7789 &lcd)
                 lcd.setTextColor(ST77XX_BLACK);
                 show(lcd);
                 lcd.setTextColor(ST77XX_BLUE);
-                //for(int i = 0; i < 12; ++i) {
-                //    if (titles[i]._tx != _tx && titles[i]._ty != _ty)
-                //        if (titles[i]._cx == _cx && titles[i]._cy == _cy) {
-                //            lcd.setCursor((int)titles[i]._cx,(int)titles[i]._cy);
-                //            lcd.print((char)titles[i]._char);
-                //            break;
-                //        }
-                //}
                 _difff = abs(_tx-_cx);
                 if((int)_tx > (int)_cx) {                   
                     _cx += _difff>=_speedx?_speedx:_difff;
@@ -212,6 +199,9 @@ void ixhundred_Move::move_next(Adafruit_ST7789 &lcd)
             }
         }
     }   
+    else {
+        show(lcd);
+    }
 }
 
 void ixhundred_Move::show(LiquidCrystal_I2C &lcd)

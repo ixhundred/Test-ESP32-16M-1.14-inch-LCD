@@ -1,8 +1,10 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include <SPI.h>
+#include <esp_task_wdt.h>
 
 #define MOVE_PERIOD 750
+#define MOVE2_PERIOD 250
 #define TEST_SPEEDX  4
 #define TEST_SPEEDY  4
 #define RX2_PIN 27 
@@ -18,7 +20,10 @@ LiquidCrystal_I2C lcd(0x27, 20, 4); // set the LCD address to 0x27 for a 16 char
 ixhundred_Move titles[13];
 ixhundred_Move titles2[9];
 uint32_t tmove = 0;
+uint32_t tmove2 = 0;
 uint8_t mark[4][20];
+int speed1 = MOVE_PERIOD;
+int speed2 = MOVE2_PERIOD;
 
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
@@ -35,6 +40,10 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RS
 #define BT_R  35
 
 float p = 3.1415926;
+
+#define WDT_TIMEOUT WDTO_8S
+TaskHandle_t Task1;
+void Task1code( void * pvParameters );
 
 void testlines(uint16_t color);
 void testdrawtext(char *text, uint16_t color);
@@ -99,20 +108,23 @@ void setup() {
   titles[9].init('H',13,1);
   titles[10].init('A',14,1);
   titles[11].init('M',15,1);
-  titles2[0].init('i',T2_SPACE,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[1].init('x',T2_SPACE*2,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[2].init('h',T2_SPACE*3,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[3].init('u',T2_SPACE*4,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[4].init('n',T2_SPACE*5,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[5].init('d',T2_SPACE*6,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[6].init('r',T2_SPACE*7,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[7].init('e',T2_SPACE*8,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
-  titles2[8].init('d',T2_SPACE*9,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
 
+  xTaskCreatePinnedToCore(
+                      Task1code,   // Task function. 
+                      "TFTTask",     // name of task. 
+                      10000,       // Stack size of task 
+                      NULL,        // parameter of the task 
+                      1,           // priority of the task 
+                      &Task1,      // Task handle to keep track of created task 
+                      0);          // pin task to core 0
+  tmove = millis();  
+  esp_task_wdt_init(WDTO_8S,true);
+  esp_task_wdt_add(Task1);  
   Serial.println("#Ready");
 }
 
 void loop() {
+  esp_task_wdt_reset();
   if(digitalRead(BT_L)==LOW) {
     delay(20);
     if(digitalRead(BT_L)==LOW) {
@@ -132,7 +144,7 @@ void loop() {
     }
   }
 
-  if ((uint32_t)(millis()-tmove) >= MOVE_PERIOD) {
+  if ((uint32_t)(millis()-tmove) >= speed1) {
     tmove = millis();
     //Serial1.println("#tick");
     uint8_t fin = 1;
@@ -149,7 +161,7 @@ void loop() {
       for(int i = 0; i < sizeof titles/sizeof titles[0]; ++i) {
         titles[i].show(lcd);
       }
-      delay(2000);
+      delay(3000);
       lcd.clear();
       for(int i = 0; i < 4; ++i)
         for(int j = 0; j < 20; ++j)
@@ -162,7 +174,9 @@ void loop() {
         titles[i].show(lcd);
         delay(250);
       }
-      delay(2000);
+      delay(3000);
+      speed1 = random(25,101)*10;
+      Serial.printf("#Speed 2 = %d\r\n",speed2);
     }
     else {
       //try to move next;
@@ -170,51 +184,69 @@ void loop() {
       //lcd.clear();
       for(int i = 0; i < sizeof titles/sizeof titles[0]; ++i) {
         titles[i].move_next(lcd, titles);
-        //for(int j = 0; j < sizeof titles/sizeof titles[0]; ++j) {
-        //  titles[j].show(lcd);
-        //}
-        //titles[i].show(lcd);
       }
-      for(int j = 0; j < sizeof titles/sizeof titles[0]; ++j) {
-        titles[j].show(lcd);
-      }
-    }
-
-
-    uint8_t fin2 = 1;
-    for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
-      if (!titles2[i].move_finished()) {
-        fin2 = 0;
-        break;
-      }
-    }
-    if (fin2 == 1) {
-      //finished reset
-      Serial.println("#titles2 move finished");
-      //tft.fillScreen(ST77XX_BLACK);
-      for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
-        titles2[i].show(tft);
-      }
-      delay(2000);
-      tft.fillRect(0,64,tft.width(),16,ST77XX_BLACK);
-      for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
-        titles2[i].randompos();
-        titles2[i].show(tft);
-        delay(250);
-      }
-      delay(2000);
-    }
-    else {
-      //try to move next;
-      Serial.println("#titles2 move next");
-      for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
-        titles2[i].move_next(tft);
-      }
+      //for(int j = 0; j < sizeof titles/sizeof titles[0]; ++j) {
+      //  titles[j].show(lcd);
+      //}
     }
 
   }
+ 
+}
 
-  
+void Task1code( void * pvParameters ){
+  //Serial.print("Task1 (TFT) running on core ");
+  //Serial.println(xPortGetCoreID());
+  titles2[0].init('i',T2_SPACE,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[1].init('x',T2_SPACE*2,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[2].init('h',T2_SPACE*3,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[3].init('u',T2_SPACE*4,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[4].init('n',T2_SPACE*5,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[5].init('d',T2_SPACE*6,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[6].init('r',T2_SPACE*7,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[7].init('e',T2_SPACE*8,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[8].init('d',T2_SPACE*9,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  tmove2 = millis();
+
+  for(;;) {
+    esp_task_wdt_reset();
+    if ((uint32_t)(millis()-tmove2) >= speed2) {
+      tmove2 = millis();
+      uint8_t fin2 = 1;
+      for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
+        if (!titles2[i].move_finished()) {
+          fin2 = 0;
+          break;
+        }
+      }
+      if (fin2 == 1) {
+        //finished reset
+        Serial.println("#titles2 move finished");
+        //tft.fillScreen(ST77XX_BLACK);
+        for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
+          titles2[i].show(tft);
+        }
+        tft.fillRect(titles2[0]._cx,titles2[0]._cy+16,titles2[sizeof titles2/sizeof titles2[0]-1]._cx-titles2[0]._cx+T2_SPACE,1,ST77XX_BLUE);
+        delay(3000);
+        tft.fillRect(0,64,tft.width(),20,ST77XX_BLACK);
+        for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
+          titles2[i].randompos();
+          titles2[i].show(tft);
+          delay(250);
+        }
+        delay(3000);
+        speed2 = random(10,51)*10;
+        Serial.printf("#Speed 2 = %d\r\n",speed2);
+      }
+      else {
+        //try to move next;
+        Serial.println("#titles2 move next");
+        for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
+          titles2[i].move_next(tft);
+        }
+      }
+    }
+  } 
 }
 
 void testlines(uint16_t color) {
