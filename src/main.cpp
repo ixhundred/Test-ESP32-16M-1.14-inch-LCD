@@ -2,6 +2,12 @@
 #include <EEPROM.h>
 #include <SPI.h>
 
+#define MOVE_PERIOD 750
+#define TEST_SPEEDX  4
+#define TEST_SPEEDY  4
+#define RX2_PIN 27 
+#define TX2_PIN 26
+
 #include <LiquidCrystal_I2C.h>
 #define I2C_SDA 21
 #define I2C_SCL 22
@@ -36,6 +42,7 @@ void tftPrintTest();
 
 void setup() {
   Serial.begin(115200);
+  //Serial1.begin(115200,SERIAL_8N1,RX2_PIN, TX2_PIN);
   EEPROM.begin(4096);
   randomSeed(analogRead(A0));
   pinMode(TFT_BL,OUTPUT);
@@ -48,11 +55,11 @@ void setup() {
 	lcd.setCursor(3,0);
 	lcd.print("Hello, world!");
 	lcd.setCursor(2,1);
-	lcd.print("Time is now");
+	lcd.print("V.I. Integration");
 	lcd.setCursor(0,2);
-	lcd.print("900 !!");
+	lcd.print("900 !! ixhundred");
 	lcd.setCursor(0,3);
-	lcd.print("ixhundred!!");
+	lcd.print("#Ready!");
 
   Serial.println(F("#Initialized Screen..."));
   tft.init(135, 240);           // Init ST7789 240x135, 1.14 inch
@@ -67,15 +74,16 @@ void setup() {
   //delay(500);
 
   // optimized lines
-  testfastlines(ST77XX_RED, ST77XX_BLUE);
-  delay(500);
+  //testfastlines(ST77XX_RED, ST77XX_BLUE);
+  //delay(500);
 
   // optimized lines
-  tftPrintTest();
-  delay(500);
+  //tftPrintTest();
 
   tft.setTextSize(2);
   testdrawtext((char *)"\n\nixhundred",ST77XX_BLUE);
+  delay(1000);
+  tft.fillScreen(ST77XX_BLACK);
 
   titles[0].init('V',3,1);
   titles[1].init('A',4,1);
@@ -90,15 +98,15 @@ void setup() {
   titles[9].init('H',13,1);
   titles[10].init('A',14,1);
   titles[11].init('M',15,1);
-  titles2[0].init('i',16,64);
-  titles2[1].init('x',16*2,64);
-  titles2[2].init('h',16*3,64);
-  titles2[3].init('u',16*4,64);
-  titles2[4].init('n',16*5,64);
-  titles2[5].init('d',16*6,64);
-  titles2[6].init('r',16*7,64);
-  titles2[7].init('e',16*8,64);
-  titles2[8].init('d',16*9,64);
+  titles2[0].init('i',16,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[1].init('x',16*2,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[2].init('h',16*3,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[3].init('u',16*4,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[4].init('n',16*5,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[5].init('d',16*6,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[6].init('r',16*7,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[7].init('e',16*8,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[8].init('d',16*9,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
 
   Serial.println("#Ready");
 }
@@ -123,8 +131,9 @@ void loop() {
     }
   }
 
-  if ((uint32_t)(millis()-tmove) >= 500) {
+  if ((uint32_t)(millis()-tmove) >= MOVE_PERIOD) {
     tmove = millis();
+    //Serial1.println("#tick");
     uint8_t fin = 1;
     for(int i = 0; i < sizeof titles/sizeof titles[0]; ++i) {
       if (!titles[i].move_finished()) {
@@ -146,7 +155,7 @@ void loop() {
           mark[i][j] = 0;
       for(int i = 0; i < sizeof titles/sizeof titles[0]; ++i) {
         do {
-          titles[i].randompos(lcd);
+          titles[i].randompos();
         } while(mark[(int)titles[i]._cy][(int)titles[i]._cx] == 1);
         mark[(int)titles[i]._cy][(int)titles[i]._cx] = 1;
         titles[i].show(lcd);
@@ -170,10 +179,10 @@ void loop() {
       }
     }
 
-/*
+
     uint8_t fin2 = 1;
     for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
-      if (!titles[i].move_finished()) {
+      if (!titles2[i].move_finished()) {
         fin2 = 0;
         break;
       }
@@ -181,16 +190,30 @@ void loop() {
     if (fin2 == 1) {
       //finished reset
       Serial.println("#titles2 move finished");
+      //tft.fillScreen(ST77XX_BLACK);
+      for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
+        titles[i].showxy(tft);
+      }
+      delay(2000);
+      tft.fillRect(0,64,tft.width(),16,ST77XX_BLACK);
+      for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
+        titles2[i].randompos();
+        titles2[i].showxy(tft);
+        delay(250);
+      }
+      delay(2000);
     }
     else {
       //try to move next;
       Serial.println("#titles2 move next");
       for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
-        titles2[i].move_next();
+        titles2[i].move_nextxy(tft);
       }
     }
-*/
+
   }
+
+  
 }
 
 void testlines(uint16_t color) {
