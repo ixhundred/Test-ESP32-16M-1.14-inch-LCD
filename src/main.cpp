@@ -18,7 +18,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4); // set the LCD address to 0x27 for a 16 char
 
 #include "ixhundred_Move.h"
 ixhundred_Move titles[13];
-ixhundred_Move titles2[9];
+ixhundred_Move titles2[18];
 uint32_t tmove = 0;
 uint32_t tmove2 = 0;
 uint8_t mark[4][20];
@@ -157,6 +157,8 @@ void loop() {
     if (fin == 1) {
       //finished reset
       Serial.println("#titles move finished");
+      speed1 = random(25,101)*10;
+      Serial.printf("#Next Speed 1 = %d\r\n",speed1);
       lcd.clear();
       for(int i = 0; i < sizeof titles/sizeof titles[0]; ++i) {
         titles[i].show(lcd);
@@ -172,16 +174,16 @@ void loop() {
         for(int j = 0; j < 20; ++j)
           mark[i][j] = 0;
       for(int i = 0; i < sizeof titles/sizeof titles[0]; ++i) {
+        int to = millis();
         do {
           titles[i].randompos();
-        } while(mark[(int)titles[i]._cy][(int)titles[i]._cx] == 1);
+        } while(mark[(int)titles[i]._cy][(int)titles[i]._cx] == 1 && millis()-to <= 1000);
         mark[(int)titles[i]._cy][(int)titles[i]._cx] = 1;
         titles[i].show(lcd);
-        delay(250);
+        Serial.printf("#titles random = %c\r\n",titles[i]._char);
+        delay(speed1);
       }
       delay(3000);
-      speed1 = random(25,101)*10;
-      Serial.printf("#Speed 2 = %d\r\n",speed2);
     }
     else {
       //try to move next;
@@ -211,6 +213,16 @@ void Task1code( void * pvParameters ){
   titles2[6].init('r',T2_SPACE*7,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
   titles2[7].init('e',T2_SPACE*8,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
   titles2[8].init('d',T2_SPACE*9,64,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[9].init('p',T2_SPACE,100,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[10].init('i',T2_SPACE*2,96,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[11].init('n',T2_SPACE*3,100,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[12].init('k',T2_SPACE*4,96,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[13].init('j',T2_SPACE*5,100,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[14].init('a',T2_SPACE*6,96,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[15].init('4',T2_SPACE*7,100,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[16].init('9',T2_SPACE*8,96,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+  titles2[17].init('8',T2_SPACE*9,100,tft.width(),tft.height(),TEST_SPEEDX,TEST_SPEEDY);
+
   tmove2 = millis();
 
   for(;;) {
@@ -227,6 +239,8 @@ void Task1code( void * pvParameters ){
       if (fin2 == 1) {
         //finished reset
         Serial.println("#titles2 move finished");
+        speed2 = random(5,50)*10;
+        Serial.printf("#Next Speed 2 = %d\r\n",speed2);
         //tft.fillScreen(ST77XX_BLACK);
         for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
           titles2[i].show(tft);
@@ -234,14 +248,14 @@ void Task1code( void * pvParameters ){
         tft.fillRect(titles2[0]._cx,titles2[0]._cy+16,titles2[sizeof titles2/sizeof titles2[0]-1]._cx-titles2[0]._cx+T2_SPACE,1,ST77XX_BLUE);
         delay(3000);
         tft.fillRect(0,64,tft.width(),20,ST77XX_BLACK);
+        tft.fillRect(0,96,tft.width(),20,ST77XX_BLACK);
         for(int i = 0; i < sizeof titles2/sizeof titles2[0]; ++i) {
           titles2[i].randompos();
           titles2[i].show(tft);
-          delay(250);
+          Serial.printf("#titles2 random = %c\r\n",titles2[i]._char);
+          delay(speed2);
         }
         delay(3000);
-        speed2 = random(10,51)*10;
-        Serial.printf("#Speed 2 = %d\r\n",speed2);
       }
       else {
         //try to move next;
